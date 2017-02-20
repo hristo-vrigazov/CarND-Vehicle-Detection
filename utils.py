@@ -2,6 +2,7 @@ import matplotlib.image as mpimg
 import numpy as np
 import cv2
 from skimage.feature import hog
+import bcolz
 
 # Define a function to return HOG features and visualization
 def get_hog_features(img, orient, pix_per_cell, cell_per_block, 
@@ -149,3 +150,12 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
         cv2.rectangle(imcopy, bbox[0], bbox[1], color, thick)
     # Return the image copy with boxes drawn
     return imcopy
+
+
+def save_array(fname, arr):
+    c = bcolz.carray(arr, rootdir=fname, mode='w')
+    c.flush()
+
+
+def load_array(fname):
+    return bcolz.open(fname)[:]
