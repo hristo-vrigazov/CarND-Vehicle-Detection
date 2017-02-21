@@ -1,2 +1,7 @@
 vehicles/
 non-vehicles/
+*.dat
+.ipynb_checkpoints/
+Exploration.ipynb
+__pycache__/
+example.py
