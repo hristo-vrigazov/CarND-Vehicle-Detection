@@ -17,9 +17,12 @@ class CarNotCarClassifier:
     def __init__(self):
         pass
 
-    def predict(self, image):
+    def predict_image(self, image):
         features = extract_features_single_image(image)
-        return self.svc.predict(features)
+        return self.svc.predict(np.array([features]))[0]
+
+    def predict_extracted(self, feature_extracted):
+        return self.svc.predict(feature_extracted)
 
     def load_data(self,
                   serialized_data_folder='./',
@@ -64,18 +67,20 @@ class CarNotCarClassifier:
         print('Done reading pickle file')
 
     def train_from_scratch(self, serialized_classifier_file='svc.pickle'):
-        self.X_scaler = StandardScaler().fit(self.X)
-        scaled_X = self.X_scaler.transform(self.X)
-        X_train, X_test, y_train, y_test = train_test_split(
-            scaled_X, self.y, test_size=0.2, random_state=7)
+        X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, test_size=0.2, random_state=7)
+
+        self.X_scaler = StandardScaler().fit(X_train)
+        scaled_X = self.X_scaler.transform(X_train)
 
         self.svc = LinearSVC()
         print('Start fitting')
         start_time = time.time()
-        self.svc.fit(X_train, y_train)
+        self.svc.fit(scaled_X, y_train)
         print('Time for training: ', time.time() - start_time, ' seconds')
-        print('Train Accuracy of SVC = ', self.svc.score(X_train, y_train))
-        print('Test Accuracy of SVC = ', self.svc.score(X_test, y_test))
+        train_scaled = self.X_scaler.transform(X_train)
+        test_scaled = self.X_scaler.transform(X_test)
+        print('Train Accuracy of SVC = ', self.svc.score(train_scaled, y_train))
+        print('Test Accuracy of SVC = ', self.svc.score(test_scaled, y_test))
 
         self.save_classifier_and_transformer(serialized_classifier_file)
 
