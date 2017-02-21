@@ -84,18 +84,23 @@ def extract_features_single_image(image, color_space='RGB', spatial_size=(32, 32
         hist_features = color_hist(feature_image, nbins=hist_bins)
         image_features.append(hist_features)
     if hog_feat:
-        if hog_channel == 'ALL':
-            hog_features = []
-            for channel in range(feature_image.shape[2]):
-                hog_features.append(get_hog_features(feature_image[:, :, channel],
-                                                     orient, pix_per_cell, cell_per_block,
-                                                     vis=False, feature_vec=True))
-            hog_features = np.ravel(hog_features)
-        else:
-            hog_features = get_hog_features(feature_image[:, :, hog_channel], orient,
-                                            pix_per_cell, cell_per_block, vis=False, feature_vec=True)
+        hog_features = extract_hog_features(cell_per_block, feature_image, hog_channel, orient, pix_per_cell)
         image_features.append(hog_features)
     return np.concatenate(image_features)
+
+
+def extract_hog_features(cell_per_block, feature_image, hog_channel, orient, pix_per_cell):
+    if hog_channel == 'ALL':
+        hog_features = []
+        for channel in range(feature_image.shape[2]):
+            hog_features.append(get_hog_features(feature_image[:, :, channel],
+                                                 orient, pix_per_cell, cell_per_block,
+                                                 vis=False, feature_vec=True))
+        hog_features = np.ravel(hog_features)
+    else:
+        hog_features = get_hog_features(feature_image[:, :, hog_channel], orient,
+                                        pix_per_cell, cell_per_block, vis=False, feature_vec=True)
+    return hog_features
 
 
 # Define a function that takes an image,
