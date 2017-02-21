@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
 
-from utils import extract_features
+from utils import extract_features_from_filenames
 from utils import extract_features_single_image
 from utils import save_array, load_array
 
@@ -87,6 +87,6 @@ class CarNotCarClassifier:
         print('Done dumping into pickle')
 
     def _get_X_y(self, path_to_images, class_label):
-        X = np.array(extract_features(paths.list_images(path_to_images))).astype(np.float64)
+        X = np.array(extract_features_from_filenames(paths.list_images(path_to_images))).astype(np.float64)
         y = np.full(len(X), class_label)
         return X, y

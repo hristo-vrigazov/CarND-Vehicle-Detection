@@ -50,13 +50,23 @@ def color_hist(img, nbins=32, bins_range=(0, 2)):
 
 # Define a function to extract features from a list of images
 # Have this function call bin_spatial() and color_hist()
-def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),
-                     hist_bins=32, orient=9,
-                     pix_per_cell=8, cell_per_block=2, hog_channel=0,
-                     spatial_feat=True, hist_feat=True, hog_feat=True):
+def extract_features_from_filenames(image_filenames, color_space='RGB', spatial_size=(32, 32),
+                                    hist_bins=32, orient=9,
+                                    pix_per_cell=8, cell_per_block=2, hog_channel=0,
+                                    spatial_feat=True, hist_feat=True, hog_feat=True):
+    images = list(map(mpimg.imread, image_filenames))
+    return extract_features_from_images(images, color_space=color_space, spatial_size=spatial_size,
+                                  hist_bins=hist_bins, orient=orient,
+                                  pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, hog_channel=hog_channel,
+                                  spatial_feat=spatial_feat, hist_feat=hist_feat, hog_feat=hog_feat)
+
+
+def extract_features_from_images(images, color_space='RGB', spatial_size=(32, 32),
+                                 hist_bins=32, orient=9,
+                                 pix_per_cell=8, cell_per_block=2, hog_channel=0,
+                                 spatial_feat=True, hist_feat=True, hog_feat=True):
     features = []
-    for file in imgs:
-        image = mpimg.imread(file)
+    for image in images:
         feature_image = convert_colorspace(image, 'RGB', color_space)
         image_features = extract_features_single_image(feature_image,
                                                        color_space=color_space, spatial_size=spatial_size,
@@ -65,7 +75,6 @@ def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),
                                                        spatial_feat=spatial_feat, hist_feat=hist_feat,
                                                        hog_feat=hog_feat)
         features.append(image_features)
-    # Return list of feature vectors
     return features
 
 
