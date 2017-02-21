@@ -6,3 +6,4 @@ Exploration.ipynb
 __pycache__/
 example.py
 *.pickle
+.idea
