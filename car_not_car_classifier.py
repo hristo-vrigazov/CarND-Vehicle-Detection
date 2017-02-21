@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.image as mpimg
 import os
 import time
+import pickle
 
 
 class CarNotCarClassifier:
@@ -42,19 +43,39 @@ class CarNotCarClassifier:
 			print('Done saving arrays')
 
 
-	def train(self):
+	def train(self, serialized_classifier_file='svc.pickle'):
+		if os.path.exists(serialized_classifier_file):
+			self.load_svc_from_pickle(serialized_classifier_file)
+		else:
+			self.train_from_scratch(serialized_classifier_file)
+
+
+	def load_svc_from_pickle(self, serialized_classifier_file):
+		print('Reading serialized classifier from pickle file ...')
+		with open(serialized_classifier_file, "rb") as pickle_in:
+			self.svc = pickle.load(pickle_in)
+		print('Done reading pickle file')
+
+
+	def train_from_scratch(self, serialized_classifier_file='svc.pickle'):
 		X_scaler = StandardScaler().fit(self.X)
 		scaled_X = X_scaler.transform(self.X)
 		X_train, X_test, y_train, y_test = train_test_split(
 			scaled_X, self.y, test_size=0.2, random_state=7)
 
-		svc = LinearSVC()
+		self.svc = LinearSVC()
 		print('Start fitting')
 		start_time = time.time()
-		svc.fit(X_train, y_train)
+		self.svc.fit(X_train, y_train)
 		print('Time for training: ', time.time() - start_time, ' seconds')
-		print('Train Accuracy of SVC = ', svc.score(X_train, y_train))
-		print('Test Accuracy of SVC = ', svc.score(X_test, y_test))
+		print('Train Accuracy of SVC = ', self.svc.score(X_train, y_train))
+		print('Test Accuracy of SVC = ', self.svc.score(X_test, y_test))
+
+		print('Dumping the classifier into pickle file ...')
+		with open(serialized_classifier_file, "wb") as pickle_out:
+			pickle.dump(self.svc, pickle_out)
+		print('Done dumping into pickle')
+
 
 	def _get_X_y(self, path_to_images, class_label):
 		X = np.array(extract_features(paths.list_images(path_to_images))).astype(np.float64)

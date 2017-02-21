@@ -5,3 +5,4 @@ non-vehicles/
 Exploration.ipynb
 __pycache__/
 example.py
+*.pickle
