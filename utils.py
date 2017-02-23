@@ -7,7 +7,7 @@ import bcolz
 
 
 # Define a function to return HOG features and visualization
-def get_hog_features(img, orient, pix_per_cell, cell_per_block,
+def get_hog_features(img, orient=9, pix_per_cell=8, cell_per_block=2,
                      vis=False, feature_vec=True):
     # Call with two outputs if vis==True
     if vis:
