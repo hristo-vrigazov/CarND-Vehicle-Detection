@@ -175,11 +175,11 @@ def find_cars_bounding_boxes(img, svc, X_scaler,
                              spatial_size=(32, 32),
                              hist_bins=32, orient=9,
                              pix_per_cell=8, cell_per_block=2,
-                             ystart=400, ystop=656, scale=1.5):
+                             y_start=400, y_stop=656, scale=1.5):
     bounding_boxes = []
     img = img.astype(np.float32) / 255
 
-    img_tosearch = img[ystart:ystop, :, :]
+    img_tosearch = img[y_start:y_stop, :, :]
     ctrans_tosearch = cv2.cvtColor(img_tosearch, cv2.COLOR_RGB2YCrCb)
     if scale != 1:
         imshape = ctrans_tosearch.shape
@@ -235,7 +235,7 @@ def find_cars_bounding_boxes(img, svc, X_scaler,
                 xbox_left = np.int(xleft * scale)
                 ytop_draw = np.int(ytop * scale)
                 win_draw = np.int(window * scale)
-                box = (xbox_left, ytop_draw + ystart), (xbox_left + win_draw, ytop_draw + win_draw + ystart)
+                box = (xbox_left, ytop_draw + y_start), (xbox_left + win_draw, ytop_draw + win_draw + y_start)
                 bounding_boxes.append(box)
 
     return bounding_boxes
