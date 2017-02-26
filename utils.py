@@ -2,7 +2,7 @@ import matplotlib.image as mpimg
 import numpy as np
 import cv2
 from skimage.feature import hog
-from skimage.color import convert_colorspace
+from scipy.ndimage.measurements import label
 import bcolz
 
 
@@ -171,12 +171,12 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
 
 
 # Define a single function that can extract features using hog sub-sampling and make predictions
-def find_cars(img, svc, X_scaler,
-              spatial_size=(32, 32),
-              hist_bins=32, orient=9,
-              pix_per_cell=8, cell_per_block=2,
-              ystart=400, ystop=656, scale=1.5):
-    draw_img = np.copy(img)
+def find_cars_bounding_boxes(img, svc, X_scaler,
+                             spatial_size=(32, 32),
+                             hist_bins=32, orient=9,
+                             pix_per_cell=8, cell_per_block=2,
+                             ystart=400, ystop=656, scale=1.5):
+    bounding_boxes = []
     img = img.astype(np.float32) / 255
 
     img_tosearch = img[ystart:ystop, :, :]
@@ -229,17 +229,54 @@ def find_cars(img, svc, X_scaler,
 
             features_all = np.hstack((spatial_features, hist_features, hog_features)).reshape(1, -1)
             test_features = X_scaler.transform(features_all)
-            # test_features = X_scaler.transform(np.hstack((shape_feat, hist_feat)).reshape(1, -1))
             test_prediction = svc.predict(test_features)
 
             if test_prediction == 1:
                 xbox_left = np.int(xleft * scale)
                 ytop_draw = np.int(ytop * scale)
                 win_draw = np.int(window * scale)
-                cv2.rectangle(draw_img, (xbox_left, ytop_draw + ystart),
-                              (xbox_left + win_draw, ytop_draw + win_draw + ystart), (0, 0, 255), 6)
+                box = (xbox_left, ytop_draw + ystart), (xbox_left + win_draw, ytop_draw + win_draw + ystart)
+                bounding_boxes.append(box)
 
-    return draw_img
+    return bounding_boxes
+
+
+def apply_threshold(heatmap, threshold):
+    heatmap[heatmap <= threshold] = 0
+    return heatmap
+
+
+def create_heatmap(img_size, bbox_list):
+    heatmap = np.zeros(img_size)
+    for box in bbox_list:
+        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
+    return heatmap
+
+
+def threshold_heatmap(heatmap, threshold):
+    heatmap[heatmap <= threshold] = 0
+    return heatmap
+
+
+def get_cars(heatmap):
+    heatmap = threshold_heatmap(heatmap, 2)
+    return label(heatmap)
+
+
+def draw_labeled_bounding_boxes(img, labels):
+    # Iterate through all detected cars
+    for car_number in range(1, labels[1]+1):
+        # Find pixels with each car_number label value
+        nonzero = (labels[0] == car_number).nonzero()
+        # Identify x and y values of those pixels
+        nonzeroy = np.array(nonzero[0])
+        nonzerox = np.array(nonzero[1])
+        # Define a bounding box based on min/max x and y
+        bbox = ((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy)))
+        # Draw the box on the image
+        cv2.rectangle(img, bbox[0], bbox[1], (0,0,255), 6)
+    # Return the image
+    return img
 
 
 def save_array(fname, arr):
