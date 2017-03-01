@@ -28,10 +28,10 @@ recognize 20 classes, the 6th of which is a car. The full list of classes can be
 We can use its [.cfg](https://github.com/pjreddie/darknet/blob/master/cfg/yolo-voc.cfg) file to directly map it to Keras Sequential
 model, and then serialize it and use the pretrained weights. This also makes it very easy to use transfer learning to
 add objects like pedestrians, traffic signs and others in the future. The output of the YOLO network is a vector of
-length 1470, which encodes the probability, confidence and bounding boxes for the recognized objects. We then extract
-those from the encoded vector, using the properties described in Section 2: Unified Detection of the 
-[original paper](https://arxiv.org/pdf/1506.02640.pdf), this happens in the `extract_boxes_from_yolo_output` method
-of the `YoloObjectDetector` class. See below for model architecture
+length 1470, which following a convention encodes the probability, confidence and bounding boxes for the recognized 
+objects. We then extract those from the encoded vector, using the properties described in Section 2: Unified 
+Detection of the [original paper](https://arxiv.org/pdf/1506.02640.pdf), this happens in the 
+`extract_boxes_from_yolo_output` method of the `YoloObjectDetector` class. See below for model architecture
 
 ```
 ____________________________________________________________________________________________________
@@ -100,7 +100,11 @@ Trainable params: 45,089,374
 Non-trainable params: 0
 ```
 
-We then use the `detect_in_cropped_image` 
+We then use the `detect_in_cropped_image`, which in turn calls `detect_in_image`, which preprocesses and
+rescales the image and passes it to the network. Then prediction is decoded in `extract_boxes_from_yolo_output`,
+which returns a list of bounding boxes for each of the 20 classes, and we get the the bounding boxes for
+cars, which is class 6. Then the `CarDetector` instance performs heatmap thresholding as explained below and
+draws the boes to the screen.
 
 
 [//]: # (Image References)
@@ -113,10 +117,7 @@ We then use the `detect_in_cropped_image`
 [test5]: ./output_images/test5.jpg
 [test6]: ./output_images/test6.jpg
 
-[image5]: ./examples/bboxes_and_heat.png
-[image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
-[video1]: ./project_video.mp4
+[heatmap]: ./output_images/heatmap.jpg
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
 ###Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -215,6 +216,8 @@ bounding boxes to cover the area of each blob detected and then draw them on the
 In the YOLO implementation, I just combine each blob from `scipy.ndimage.measurements.label()`, and the YOLO network
 has very low false positive rate, so there I do not have additional heuristics and cheap tricks to filter false
 positives.
+
+![alt text][heatmap]
 
 ---
 
