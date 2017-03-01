@@ -1,5 +1,17 @@
 **Vehicle Detection Project**
 
+[//]: # (Image References)
+[dataset_examples]: ./examples/car_not_car.png
+[hog_example]: ./output_images/hog_example.jpg
+[test1]: ./output_images/test1.jpg
+[test2]: ./output_images/test2.jpg
+[test3]: ./output_images/test3.jpg
+[test4]: ./output_images/test4.jpg
+[test5]: ./output_images/test5.jpg
+[test6]: ./output_images/test6.jpg
+[yolo_test1]: ./output_images/yolo_test1.jpg
+[heatmap]: ./output_images/heatmap.jpg
+
 The goal of the project is to detect cars in images and video streams.
 Two approaches were evaluated:
 * sliding window + HOG feature extractor + SVM classifier
@@ -104,20 +116,10 @@ We then use the `detect_in_cropped_image`, which in turn calls `detect_in_image`
 rescales the image and passes it to the network. Then prediction is decoded in `extract_boxes_from_yolo_output`,
 which returns a list of bounding boxes for each of the 20 classes, and we get the the bounding boxes for
 cars, which is class 6. Then the `CarDetector` instance performs heatmap thresholding as explained below and
-draws the boxes to the screen.
+draws the boxes to the screen. Here is an example output of the YOLO object detector:
 
+![alt text][yolo_test1]
 
-[//]: # (Image References)
-[dataset_examples]: ./examples/car_not_car.png
-[hog_example]: ./output_images/hog_example.jpg
-[test1]: ./output_images/test1.jpg
-[test2]: ./output_images/test2.jpg
-[test3]: ./output_images/test3.jpg
-[test4]: ./output_images/test4.jpg
-[test5]: ./output_images/test5.jpg
-[test6]: ./output_images/test6.jpg
-
-[heatmap]: ./output_images/heatmap.jpg
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
 ###Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -139,9 +141,11 @@ Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
 
 ![alt text][dataset_examples]
 
-In the `extract_features_single_image`, I use `skimage`'s function `hog`, spatial features which are simply flattened
-version of the image and histogram colors to form a vector, which represents the features. Here is an example hog feature
-of the Br channel of an image:
+In the `extract_features_single_image`, I use three main parts to construct the feature vector: spatial features, color
+histogram and hog features on all channels. Spatial features are simply flattened version of the image, and in the color
+histogram, I convert to `YCrCb` colorspace.
+
+Here is an example hog feature of the Br channel of an image:
 
 ![alt text][hog_example]
 
@@ -151,12 +155,13 @@ I tried different combinations of the parameters, even tried running a genetic a
 using http://deap.readthedocs.io/en/master/, where the individuals are a combination of parameters and their fitness
 is the accuracy on the test set. This led to 99.12% accuracy on the test set, but there were a lot of false positives
 in the image detection, so I manually selected the parameters in the end, through trial and error to be:
-orientation - 9, pix_per_cell - 8, cell_per_block - 2.
+orientation - 9, pix_per_cell - 8, cell_per_block - 2. 
 
 ####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
 I trained a linear SVM in the `train_from_scratch` method of the class `CarNotCarClassifier`. First I split the data
-using a fixed seed to get reproducible results. Then I perform standardization on the training data only, since
+using a fixed seed to get reproducible results. Then I perform standardization using the `StandardScaler` function 
+from scikit-learn. I do that only on the training data, since:
 
 > For example, preparing your data
 > using normalization or standardization on the entire training dataset before learning would not
@@ -168,13 +173,12 @@ After that, I train the linear SVM and log its accuracy on the test set.
 
 ###Sliding Window Search
 
-####1. Describe how (and identify where in your code) you implemented a sliding window search. How did you decide what
-scales to search and how much to overlap windows?
+####1. Describe how (and identify where in your code) you implemented a sliding window search. How did you decide what scales to search and how much to overlap windows?
 
 I decided to search at the bottom half of the image, cutting the sky. I choose the scales to be 1.0, 1.33, 1.66, 2.0
-and performed the search by computing the features for the whole cropped image, and then subsampling it. I choose these
-values as a tradeoff between speed and precision. In the end, the search takes approximately 1FPS, which is still very
-slow.
+and performed the search by computing the features for the whole cropped image, and then subsampling it by 3 cells
+per step (see the `find_cars_bounding_boxes` in `utils.pyy`). I choose these values as a tradeoff between speed and 
+precision. In the end, the search takes approximately 1FPS, which is still very slow.
 
 ####2. Show some examples of test images to demonstrate how your pipeline is working.
 What did you do to optimize the performance of your classifier?
