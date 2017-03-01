@@ -11,6 +11,8 @@
 [test6]: ./output_images/test6.jpg
 [yolo_test1]: ./output_images/yolo_test1.jpg
 [heatmap]: ./output_images/heatmap.jpg
+[8scales_test]: ./output_images/8scales_test.jpg
+[4scales_test]: ./output_images/4scales_test.jpg
 
 The goal of the project is to detect cars in images and video streams.
 Two approaches were evaluated:
@@ -180,13 +182,12 @@ and performed the search by computing the features for the whole cropped image, 
 per step (see the `find_cars_bounding_boxes` in `utils.pyy`). I choose these values as a tradeoff between speed and 
 precision. In the end, the search takes approximately 1FPS, which is still very slow.
 
-####2. Show some examples of test images to demonstrate how your pipeline is working.
-What did you do to optimize the performance of your classifier?
+####2. Show some examples of test images to demonstrate how your pipeline is working. What did you do to optimize the performance of your classifier?
 
-I optimized the performance of the classifier by searching at an optimal number of scales, to retain reasonable
-accuracy and speed. Here is how the classifier performs on the test images. As can be seen from the test images below
-though, some price is paid, as one of the images missed the car, because the car in the image
-was not at a suitable case. Also, there are still some small false positives.
+I optimized the performance of the classifier by cropping the part of the image that has only the sky and also searching
+at an optimal number of scales, to retain reasonable accuracy and speed. Here is how the classifier performs on the 
+test images. As can be seen from the test images below though, some price is paid, as one of the images missed the car, 
+because the car in the image was not at a suitable scale. Also, there are still some small false positives.
 
 ![alt text][test1]
 
@@ -208,10 +209,19 @@ was not at a suitable case. Also, there are still some small false positives.
 ####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
 Here's a [link to my video result](https://youtu.be/sJHEa_ej6hU). This is using YOLO.
 
-####2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and
-some method for combining overlapping bounding boxes.
+####2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-I recorded the positions of positive detections in each frame of the video. From the positive detections I created a
+I filtered false positives (and improved the performance of the classifier) by searching at smaller number of scales.
+Here is an example of searching in 8 scales, equally distributed in [1, 2].
+
+![alt text][8scales_test]
+
+Now an example of the same image searching in 8 scales, equally distributed in [1, 2] (as the code is in the submission):
+It is clearly visible that false positives were eliminated.
+
+![alt text][4scales_test]
+
+To combine overlapping bounding boxes, I recorded the positions of positive detections in each frame of the video. From the positive detections I created a
 heatmap, see `create_heatmap` in `utils.py`. I filtered false positives by thresholding that map to identify vehicle
 positions in the `threshold_heatmap` method. I then used `scipy.ndimage.measurements.label()` to identify individual
 blobs in the heatmap in the `get_cars` method. I then assumed each blob corresponded to a vehicle.  I constructed
