@@ -7,6 +7,8 @@ from utils import find_cars_bounding_boxes, create_heatmap
 
 import matplotlib.pyplot as plt
 
+from yolo_object_detector import YoloObjectDetector
+
 
 class CarDetector:
     def __init__(self, car_not_car_classifier=None):
@@ -17,6 +19,8 @@ class CarDetector:
             self.car_not_car_classifier.load_data()
             self.car_not_car_classifier.train()
 
+        self.yolo_detector = YoloObjectDetector()
+
     def detect_in_image(self, image):
         bounding_boxes = self._collect_bounding_boxes(image)
         img_size = image.shape[0], image.shape[1]
@@ -26,6 +30,10 @@ class CarDetector:
         return result
 
     def _collect_bounding_boxes(self, image):
+        return self.yolo_detector.detect_in_cropped_image(image, 'car')
+
+
+    def _collect_bounding_boxes_svm(self, image):
         svc = self.car_not_car_classifier.svc
         X_scaler = self.car_not_car_classifier.X_scaler
         bounding_boxes = []

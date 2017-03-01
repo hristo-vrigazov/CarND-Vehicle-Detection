@@ -175,11 +175,13 @@ def find_cars_bounding_boxes(img, svc, X_scaler,
                              spatial_size=(32, 32),
                              hist_bins=32, orient=9,
                              pix_per_cell=8, cell_per_block=2,
-                             y_start=400, y_stop=656, scale=1.5):
+                             x_start=0, x_stop=1280,
+                             y_start=300, y_stop=656, scale=1.5):
+    # print(y_start, y_stop, img.shape)
     bounding_boxes = []
     img = img.astype(np.float32) / 255
 
-    img_tosearch = img[y_start:y_stop, :, :]
+    img_tosearch = img[y_start:y_stop, x_start:x_stop, :]
     ctrans_tosearch = cv2.cvtColor(img_tosearch, cv2.COLOR_RGB2YCrCb)
     if scale != 1:
         imshape = ctrans_tosearch.shape
@@ -196,7 +198,7 @@ def find_cars_bounding_boxes(img, svc, X_scaler,
     # 64 was the orginal sampling rate, with 8 cells and 8 pix per cell
     window = 64
     nblocks_per_window = (window // pix_per_cell) - 1
-    cells_per_step = 2  # Instead of overlap, define how many cells to step
+    cells_per_step = 3  # Instead of overlap, define how many cells to step
     nxsteps = (nxblocks - nblocks_per_window) // cells_per_step
     nysteps = (nyblocks - nblocks_per_window) // cells_per_step
 
@@ -235,7 +237,7 @@ def find_cars_bounding_boxes(img, svc, X_scaler,
                 xbox_left = np.int(xleft * scale)
                 ytop_draw = np.int(ytop * scale)
                 win_draw = np.int(window * scale)
-                box = (xbox_left, ytop_draw + y_start), (xbox_left + win_draw, ytop_draw + win_draw + y_start)
+                box = (xbox_left + x_start, ytop_draw + y_start), (xbox_left + win_draw + x_start, ytop_draw + win_draw + y_start)
                 bounding_boxes.append(box)
 
     return bounding_boxes
@@ -259,7 +261,7 @@ def threshold_heatmap(heatmap, threshold):
 
 
 def get_cars(heatmap):
-    heatmap = threshold_heatmap(heatmap, 2)
+    heatmap = threshold_heatmap(heatmap, 0)
     return label(heatmap)
 
 
