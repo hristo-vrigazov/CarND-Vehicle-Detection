@@ -7,18 +7,30 @@ Two approaches were evaluated:
 Both produced reasonable results, but the sliding window is significantly slower and it is difficult to imagine how to
 scale it. I will now explain both methods, starting with the YOLO network, and then the sliding window.
 
+## Setup
+
+If using CPU:
+```
+conda env create -f environment.yml
+./download.sh
+```
+GPU:
+```
+conda env create -f environment-gpu.yml
+./download.sh
+```
+
 ## Yolo neural network
 
 One of the most popular neural networks for object detection is [YOLO](https://pjreddie.com/darknet/yolo/). It can
-recognize 20 classes, the 6th of which is a car. The full list of classes can be obtained [here]
-(http://host.robots.ox.ac.uk:8080/pascal/VOC/voc2007/htmldoc/index.html), or in the constructor of the
+recognize 20 classes, the 6th of which is a car. The full list of classes can be obtained [here](http://host.robots.ox.ac.uk:8080/pascal/VOC/voc2007/htmldoc/index.html), or in the constructor of the
 `YoloObjectDetector` class, located in the `yolo_object_detector.py` file.
 We can use its [.cfg](https://github.com/pjreddie/darknet/blob/master/cfg/yolo-voc.cfg) file to directly map it to Keras Sequential
 model, and then serialize it and use the pretrained weights. This also makes it very easy to use transfer learning to
 add objects like pedestrians, traffic signs and others in the future. The output of the YOLO network is a vector of
 length 1470, which encodes the probability, confidence and bounding boxes for the recognized objects. We then extract
-those from the encoded vector, using the properties described in Section 2: Unified Detection of the [original paper]
-(https://arxiv.org/pdf/1506.02640.pdf), this happens in the `extract_boxes_from_yolo_output` method
+those from the encoded vector, using the properties described in Section 2: Unified Detection of the 
+[original paper](https://arxiv.org/pdf/1506.02640.pdf), this happens in the `extract_boxes_from_yolo_output` method
 of the `YoloObjectDetector` class. See below for model architecture
 
 ```
@@ -87,6 +99,9 @@ Total params: 45,089,374
 Trainable params: 45,089,374
 Non-trainable params: 0
 ```
+
+We then use the `detect_in_cropped_image` 
+
 
 [//]: # (Image References)
 [dataset_examples]: ./examples/car_not_car.png
