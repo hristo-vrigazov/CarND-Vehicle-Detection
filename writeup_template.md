@@ -104,7 +104,7 @@ We then use the `detect_in_cropped_image`, which in turn calls `detect_in_image`
 rescales the image and passes it to the network. Then prediction is decoded in `extract_boxes_from_yolo_output`,
 which returns a list of bounding boxes for each of the 20 classes, and we get the the bounding boxes for
 cars, which is class 6. Then the `CarDetector` instance performs heatmap thresholding as explained below and
-draws the boes to the screen.
+draws the boxes to the screen.
 
 
 [//]: # (Image References)
